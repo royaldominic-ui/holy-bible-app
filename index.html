@@ -17,7 +17,6 @@
 <meta name="msapplication-tap-highlight" content="no">
 <meta name="google" content="notranslate">
 <meta name="format-detection" content="telephone=no">
-
 <!-- App icons -->
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-192.png">
@@ -25,6 +24,19 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
 <title>✝ Holy Bible — Premium Edition</title>
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import{getAuth,GoogleAuthProvider,signInWithPopup,createUserWithEmailAndPassword,signInWithEmailAndPassword,onAuthStateChanged,signOut,updateProfile}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import{getFirestore,doc,setDoc,getDoc,updateDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import{getAnalytics,logEvent}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+const app=initializeApp({apiKey:"AIzaSyDMSaIyRIXy1NbT4mtJgVF0RuQ-w92uRBs",authDomain:"holy-bible-app-b5146.firebaseapp.com",projectId:"holy-bible-app-b5146",storageBucket:"holy-bible-app-b5146.firebasestorage.app",messagingSenderId:"739013186645",appId:"1:739013186645:web:ae78430a158c90d565b0dc",measurementId:"G-N7ZT5M3228"});
+const auth=getAuth(app);const db=getFirestore(app);const analytics=getAnalytics(app);
+window.FBAUTH=auth;window.FBDB=db;window.FBLOG=(e,p)=>{try{logEvent(analytics,e,p||{});}catch(x){}};
+window.FB_GP=GoogleAuthProvider;window.FB_popup=signInWithPopup;window.FB_signOut=signOut;
+window.FB_createUser=createUserWithEmailAndPassword;window.FB_signIn=signInWithEmailAndPassword;
+window.FB_updateProfile=updateProfile;window.FB_doc=doc;window.FB_setDoc=setDoc;window.FB_getDoc=getDoc;window.FB_updateDoc=updateDoc;window.FB_ts=serverTimestamp;
+onAuthStateChanged(auth,async u=>{if(u){localStorage.setItem("hb_sess",JSON.stringify({id:u.uid,name:u.displayName||"Bible Reader",email:u.email,avatar:(u.displayName||"B")[0].toUpperCase(),photoURL:u.photoURL}));window._fbSess=JSON.parse(localStorage.getItem("hb_sess"));if(typeof updateHeaderBtn==="function")setTimeout(updateHeaderBtn,200);}else{window._fbSess=null;localStorage.removeItem("hb_sess");if(typeof updateHeaderBtn==="function")setTimeout(updateHeaderBtn,200);}});
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&family=Cinzel:wght@400;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
 /* ══════════════════════════════════════════════════
