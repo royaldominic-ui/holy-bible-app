@@ -1,0 +1,100 @@
+{
+  "name": "Holy Bible — Premium Edition",
+  "short_name": "Holy Bible",
+  "description": "Complete KJV Bible with audio, themes, AI assistant, notes & community",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#8B4513",
+  "theme_color": "#8B4513",
+  "dir": "ltr",
+  "lang": "en-US",
+  "categories": ["books", "education", "lifestyle", "religion"],
+
+  "icons": [
+    { "src": "icons/icon-72.png",   "sizes": "72x72",   "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-96.png",   "sizes": "96x96",   "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-128.png",  "sizes": "128x128", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-144.png",  "sizes": "144x144", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-152.png",  "sizes": "152x152", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-180.png",  "sizes": "180x180", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-192.png",  "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-384.png",  "sizes": "384x384", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png",  "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+
+  "screenshots": [
+    {
+      "src": "screenshots/home.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Home screen with Verse of the Day"
+    },
+    {
+      "src": "screenshots/reading.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Reading view with highlights"
+    },
+    {
+      "src": "screenshots/ai.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "AI Bible Assistant"
+    }
+  ],
+
+  "shortcuts": [
+    {
+      "name": "Today's Verse",
+      "short_name": "Verse",
+      "description": "View today's verse of the day",
+      "url": "./?action=votd",
+      "icons": [{ "src": "icons/icon-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Continue Reading",
+      "short_name": "Read",
+      "description": "Continue where you left off",
+      "url": "./?action=continue",
+      "icons": [{ "src": "icons/icon-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Search",
+      "short_name": "Search",
+      "url": "./?action=search",
+      "icons": [{ "src": "icons/icon-96.png", "sizes": "96x96" }]
+    }
+  ],
+
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=com.cybernate247.holybible",
+      "id": "com.cybernate247.holybible"
+    }
+  ],
+  "prefer_related_applications": false,
+
+  "share_target": {
+    "action": "./?action=share",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+
+  "protocol_handlers": [
+    {
+      "protocol": "web+bible",
+      "url": "./?ref=%s"
+    }
+  ]
+}
