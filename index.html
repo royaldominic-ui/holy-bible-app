@@ -4256,37 +4256,66 @@ window.togglePush=togglePush;
 // FIREBASE + ALL FIXES — v4
 // ═══════════════════════════════════════════════════════
 
-// ── Restore session from localStorage on page load ──────────
-// This handles the case where onAuthStateChanged fires BEFORE this
-// script block loads (race condition with module scripts + redirect)
-(function() {
-  try {
-    var stored = localStorage.getItem('hb_sess');
-    if (stored) {
-      var sess = JSON.parse(stored);
-      if (sess && sess.id) {
-        window._fbSess = sess;
-        // Defer UI update until DOM is interactive
-        function tryRestoreUI() {
-          if (typeof updateHeaderBtn === 'function' && document.getElementById('authHeaderBtn')) {
-            updateHeaderBtn();
-          } else {
-            setTimeout(tryRestoreUI, 100);
-          }
-        }
-        tryRestoreUI();
-      }
+// ── BULLETPROOF session restore ──────────────────────────
+// Directly updates the DOM without depending on updateHeaderBtn
+// which may be the wrong version or not defined yet.
+(function restoreSessionUI() {
+  var stored;
+  try { stored = JSON.parse(localStorage.getItem('hb_sess')); } catch(e) {}
+  if (!stored || !stored.id) return;
+  window._fbSess = stored;
+
+  function applyUI() {
+    var btn = document.getElementById('authHeaderBtn');
+    if (!btn) { setTimeout(applyUI, 150); return; }
+
+    // Build avatar HTML
+    var avHTML;
+    if (stored.photoURL) {
+      avHTML = '<img src="' + stored.photoURL + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+    } else {
+      avHTML = stored.avatar || (stored.name || 'U').charAt(0).toUpperCase();
     }
-  } catch(e) {}
+    btn.innerHTML = '<span class="hb-avatar">' + avHTML + '</span>';
+    btn.title = (stored.name || 'User') + ' \u2014 click for profile';
+
+    // Also update profile section if it exists
+    var pa = document.getElementById('profAv');
+    var pn = document.getElementById('profName');
+    var pe = document.getElementById('profEmail');
+    if (pa) pa.innerHTML = avHTML;
+    if (pn) pn.textContent = stored.name || 'User';
+    if (pe) pe.textContent = stored.email || '';
+
+    // Toggle auth modal views
+    var ao = document.getElementById('authOut');
+    var ai = document.getElementById('authIn');
+    if (ao) ao.style.display = 'none';
+    if (ai) ai.style.display = '';
+    var mt = document.getElementById('authModalTitle');
+    if (mt) mt.textContent = 'My Profile';
+
+    // Reset google buttons
+    document.querySelectorAll('.google-btn').forEach(function(gb) {
+      gb.disabled = false; gb.innerHTML = '<span class="g-logo"></span>Continue with Google';
+    });
+
+    console.log('[Session] UI restored for:', stored.name);
+  }
+  applyUI();
 })();
 
 // ── Listen for late auth events from the Firebase module ─────
 window.addEventListener('fb-auth-ready', function(e) {
-  if (e.detail && typeof updateHeaderBtn === 'function') {
-    updateHeaderBtn();
-    closeModal('authModal');
-    toast('\u2764\uFE0F Welcome, ' + (e.detail.name || 'User') + '!');
+  if (!e.detail) return;
+  window._fbSess = e.detail;
+  localStorage.setItem('hb_sess', JSON.stringify(e.detail));
+  // Use the override updateHeaderBtn if available, otherwise direct DOM
+  if (typeof window.updateHeaderBtn === 'function') {
+    window.updateHeaderBtn();
   }
+  closeModal('authModal');
+  toast('\u2764\uFE0F Welcome, ' + (e.detail.name || 'User') + '!');
 });
 
 // ── Reset Google button on page load ─────────────────────
@@ -4325,26 +4354,81 @@ window._onFBSignIn = function() {
   sessionStorage.removeItem('hb_google_redirect');
   // Reset Google sign-in state
   window._googleSignInPending = false;
-  var allGBtns = document.querySelectorAll('.google-btn');
-  allGBtns.forEach(function(b) {
+  document.querySelectorAll('.google-btn').forEach(function(b) {
     b.disabled = false;
     b.innerHTML = '<span class="g-logo"></span>Continue with Google';
   });
-  updateHeaderBtn();
+
+  // DIRECT DOM update — don't rely on updateHeaderBtn version
+  var btn = document.getElementById('authHeaderBtn');
+  if (btn) {
+    var avHTML;
+    if (sess.photoURL) {
+      avHTML = '<img src="' + sess.photoURL + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+    } else {
+      avHTML = sess.avatar || (sess.name || 'U').charAt(0).toUpperCase();
+    }
+    btn.innerHTML = '<span class="hb-avatar">' + avHTML + '</span>';
+    btn.title = (sess.name || 'User') + ' \u2014 click for profile';
+  }
+
+  // Update profile modal
+  var pa = document.getElementById('profAv');
+  var pn = document.getElementById('profName');
+  var pe = document.getElementById('profEmail');
+  if (pa) pa.innerHTML = sess.photoURL
+    ? '<img src="' + sess.photoURL + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'
+    : (sess.avatar || 'U');
+  if (pn) pn.textContent = sess.name;
+  if (pe) pe.textContent = sess.email;
+
+  // Toggle modal views
+  var ao = document.getElementById('authOut');
+  var ai = document.getElementById('authIn');
+  if (ao) ao.style.display = 'none';
+  if (ai) ai.style.display = '';
+  var mt = document.getElementById('authModalTitle');
+  if (mt) mt.textContent = 'My Profile';
+
+  // Streak badge
+  try {
+    var game = JSON.parse(localStorage.getItem('hb-game') || '{}');
+    var ex = document.getElementById('streakHdgEl'); if (ex) ex.remove();
+    if (game.streak > 1 && btn && btn.parentNode) {
+      var badge = document.createElement('div');
+      badge.id = 'streakHdgEl'; badge.className = 'streak-hdg';
+      badge.innerHTML = '\uD83D\uDD25 ' + game.streak;
+      badge.title = game.streak + '-day streak!';
+      btn.parentNode.insertBefore(badge, btn);
+    }
+  } catch(e) {}
+
   closeModal('authModal');
   toast('\u2764\uFE0F Welcome, ' + sess.name + '!');
   haptic([20, 10, 30]);
   if (window.FBLOG) FBLOG('login_success');
+  console.log('[Auth] Sign-in UI updated for:', sess.name);
 };
 
 window._onFBSignOut = function() {
   window._googleSignInPending = false;
-  var allGBtns = document.querySelectorAll('.google-btn');
-  allGBtns.forEach(function(b) {
+  sessionStorage.removeItem('hb_google_redirect');
+  document.querySelectorAll('.google-btn').forEach(function(b) {
     b.disabled = false;
     b.innerHTML = '<span class="g-logo"></span>Continue with Google';
   });
-  updateHeaderBtn();
+  // Direct DOM reset
+  var btn = document.getElementById('authHeaderBtn');
+  if (btn) {
+    btn.innerHTML = '<span id="authBtnAvatar">\uD83D\uDC64</span><span id="authBtnLabel">Sign In</span>';
+  }
+  var ao = document.getElementById('authOut');
+  var ai = document.getElementById('authIn');
+  if (ao) ao.style.display = '';
+  if (ai) ai.style.display = 'none';
+  var mt = document.getElementById('authModalTitle');
+  if (mt) mt.textContent = 'Sign In';
+  var ex = document.getElementById('streakHdgEl'); if (ex) ex.remove();
 };
 
 // ── Google Sign-In ────────────────────────────────────────
